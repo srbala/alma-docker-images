@@ -19,7 +19,6 @@ RUN mkdir /mnt/sys-root; \
     podman-docker; 
 
 WORKDIR /project
-#CMD ["pytest", "--verbose"]
 
 CMD /bin/bash
 
