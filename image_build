@@ -1,0 +1,125 @@
+#!/bin/bash
+# base script
+set -xeuo pipefail
+
+ARCH="$(uname -m)"
+MANIFEST=0
+TYPE=''
+
+OPTIND=1
+
+get_arch_repo_name() {
+    local -r arch="${1}"
+    case "${arch}" in
+        x86_64)
+            echo 'amd64';;
+        aarch64)
+            echo 'arm64v8';;
+        ppe64le)
+            echo 'ppe64le';;
+        s390x)
+            echo 's390x';;
+        *)
+            echo "Error: unsupported architecture ${arch}" 1>&2
+            exit 2
+            ;;
+    esac
+}
+
+
+
+
+gen_rootfs() {
+    local -r image="${1}"
+    local -r TNAME="${2}"
+
+    TCNT=$(docker inspect $image | jq '.[] | .RootFS.Layers | length')
+    
+    echo "Found $TCNT layer(s) in image '$image'."
+    if [ $TCNT -ne 1 ]; then
+        echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
+        exit
+    fi
+    echo "Setting up temp work dir ..."
+    mkdir -p wsl-temp && cd wsl-temp
+    echo "Saving docker/container image ..."
+    docker save $image -o wsltemp.tar
+    TWSL=$(tar -tf wsltemp.tar | grep layer)
+    TCNT=$(echo $TWSL | tr ' ' '\n' | grep layer | wc -l | xargs)
+    echo "Found $TCNT layer(s) in image '$image'."
+    if [ $TCNT -eq 1 ]; then
+        echo "Extracting rootfs $TWSL ..."
+        tar -xf wsltemp.tar $TWSL
+        mv $TWSL $TNAME.tar
+        echo "Compressing rootfs ..."
+        xz $TNAME.tar
+        mv $TNAME* ../
+        cd ..
+        F1=$(ls | grep $2)
+        TMSG="Task complete. Output rootfs located at $PWD/$F1"
+    else
+        echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
+        cd ..
+        TMSG="Error Exit, task complete."
+    fi
+    echo "Perform cleanup ..."
+    rm -rf wsl-temp
+    echo $TMSG
+}
+
+build_docker_file() {
+
+    repo_prefix="{1:'quay.io/almalinuxautobot'}"
+    repo_sep=':'
+    # for type in micro minimal base init; 
+    for type in micro; 
+    do
+        for arch in amd64 arm64/v8 ppc64le;
+
+        do
+            march=$arch;
+            if [[ $arch == 'arm64/v8' ]]; then
+                march='aarch64';
+            fi    
+            if [[ $arch == 'amd64' ]]; then
+                march='x86_64';
+            fi   
+            build_tag=$repo_prefix$repo_sep'8-'$type'-20220608-'$march;
+            docker build --squash --platform=linux/$arch -t $build_tag -f Dockerfile.$type . 
+            docker push $build_tag
+        done
+    done
+}
+
+build_manifest() {
+    repo_prefix="${1:srbala/}"
+    types="micro minimal base init"
+    tags="latest 8 8.6 8.6-20220512"
+    dtag="20220512"
+    ver='8'
+for type in $types; 
+do 
+    if [ "${ver}" == '8' ]; then
+        for tag in $tags
+        do
+            docker manifest create --amend $repo_prefix/$ver-$type:$tag \
+                $repo_prefix/amd64:$ver-$type-$dtag \
+                $repo_prefix/arm64v8:$ver-$type-$dtag \
+                $repo_prefix/ppc64le:$ver-$type-$dtag;
+            docker manifest push $repo_prefix/$ver-$type:$tag
+        done
+    fi    
+    if [ "${ver}" == '9' ]; then
+        for tag in $tags
+        do
+            docker manifest create --amend $repo_prefix/$ver-$type:$tag \
+                $repo_prefix/amd64:$ver-$type-$dtag \
+                $repo_prefix/arm64v8:$ver-$type-$dtag \
+                $repo_prefix/ppc64le:$ver-$type-$dtag \
+                $repo_prefix/s390x:$ver-$type-$dtag ;
+            docker manifest push $repo_prefix/$ver-$type:$tag
+        done
+    fi    
+
+done
+}
