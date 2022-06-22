@@ -1,5 +1,5 @@
 FROM almalinux/8-init
-RUN dnf -y install httpd which; \
+RUN dnf -y install httpd which initscripts; \
     dnf clean all; \
     systemctl enable httpd;
 RUN echo "AlmaLinux HTTPD Server <br />Page works" > /var/www/html/index.html
