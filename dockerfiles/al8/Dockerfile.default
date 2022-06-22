@@ -1,15 +1,15 @@
-ARG SYSBASE=almalinux/8-base
+ARG SYSBASE=almalinux:8
 FROM ${SYSBASE} as system-build
 
 RUN mkdir /mnt/sys-root; \
-    dnf install \
+    dnf install -y \
 #    --nogpgcheck --repoid=AppStream --repoid=BaseOS \
 #    --repofrompath='BaseOS,https://repo.almalinux.org/almalinux/8.5/BaseOS/x86_64/os/' \
 #    --repofrompath='AppStream,https://repo.almalinux.org/almalinux/8.5/AppStream/x86_64/os/' \
     --installroot /mnt/sys-root \
     --releasever 8 \
     --setopt install_weak_deps=false \
-    --nodocs -y \
+    --nodocs \
     binutils \
     coreutils-single \
     dnf \
