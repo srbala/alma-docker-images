@@ -349,8 +349,8 @@ build_ubi_manifest() {
                 if [ "${al_version}" == '9' ]; then
                     part2="${part2} --amend ${repo_prefix}/s390x:${tag_suffix}"
                 fi   
-                echo "Part1: ${part1}"
-                echo "Part2: ${part2}"
+                # echo "Part1: ${part1}"
+                # echo "Part2: ${part2}"
                 # rm returns error when repo/tag not found 
                 # docker manifest rm $part1
                 docker manifest create ${part1} ${part2}
