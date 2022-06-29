@@ -357,7 +357,7 @@ build_images () {
     # input type env
     local -r input_type=${4}
     # repo_prefix="srbala"
-    local -r repo_prefix=${5}
+    local -r repos=${5}
     repo_sep=":"
     # tag_date=$(date +%Y%m%d)
     local -r tag_date=${6}
@@ -393,6 +393,11 @@ build_images () {
 
     if [[ $status == 'supported' && ! -z "$type_list" ]];  then
     echo "Ready for processing ..."
+        local repo_prefix="docker.io/srbala"
+        for repo in ${repos};
+        do
+            repo_prefix=repo
+        done
         for type in ${type_list};
         do
             echo ""
