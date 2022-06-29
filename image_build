@@ -266,7 +266,7 @@ gen_rootfs() {
 pull_docker_official() {
     local -r al_version="${1}"
     local -r rel_version="${2}"
-    local -r types="${3}"
+    local -r type="${3}"
     local -r repo_prefix="${4}"
     local -r date_suffix="${5}"
 
@@ -274,19 +274,21 @@ pull_docker_official() {
     if [[ $type == "minimal" ]]; then
         tag="$tag-$type"
     fi
+# pull with full release tag from docker    
+    local tag1=$tag
     tag="$tag-$date_suffix"
-    docker pull docker.io/amd64/almalinux:$tag
-    docker tag docker.io/amd64/almalinux:$tag "$repo_prefix/amd64:$tag"
+    docker pull docker.io/amd64/almalinux:$tag1
+    docker tag docker.io/amd64/almalinux:$tag1 "$repo_prefix/amd64:$tag"
     docker push "$repo_prefix/amd64:$tag"
-    docker pull docker.io/arm64v8/almalinux:$tag
-    docker tag docker.io/arm64v8/almalinux:$tag "$repo_prefix/arm64v8:$tag"
+    docker pull docker.io/arm64v8/almalinux:$tag1
+    docker tag docker.io/arm64v8/almalinux:$tag1 "$repo_prefix/arm64v8:$tag"
     docker push "$repo_prefix/arm64v8:$tag"
-    docker pull docker.io/ppc64le/almalinux:$tag
-    docker tag docker.io/ppc64le/almalinux:$tag "$repo_prefix/ppc64le:$tag"
+    docker pull docker.io/ppc64le/almalinux:$tag1
+    docker tag docker.io/ppc64le/almalinux:$tag1 "$repo_prefix/ppc64le:$tag"
     docker push "$repo_prefix/ppc64le:$tag"
     if [[ $al_version == "9" ]]; then
-        docker pull docker.io/s390x/almalinux:$tag
-        docker tag docker.io/s390x/almalinux:$tag "$repo_prefix/s390x:$tag"
+        docker pull docker.io/s390x/almalinux:$tag1
+        docker tag docker.io/s390x/almalinux:$tag1 "$repo_prefix/s390x:$tag"
         docker push "$repo_prefix/s390x:$tag"
     fi
 
@@ -297,46 +299,49 @@ build_ubi_manifest() {
     local -r al_version="${1}"
     local -r rel_version="${2}"
     local -r types="${3}"
-    local -r repo_prefix="${4}"
+    local -r repos="${4}"
     local -r date_suffix="${5}"
     local -r tags="latest ${1} ${1}.${2} ${1}.${2}-${5}"
-    
-    for type in $types; 
-    do 
-        if [[ $repo_prefix == *"docker"* &&  $type == "default" ]]; then
-            echo "No place holder for default in user space"
-        else
-        if [[ $type == "default" || $type == "minimal" ]]; then
-            pull_docker_official ${1} ${2} ${3} ${4} ${5} 
-        else
-            build_images ${1} ${2} "all" $type ${4} ${5} "rootfs"
-        fi
-        for tag in $tags
-        do
-            local part1="$repo_prefix"
-            local part2=""
-            local stype="-"
-            if [[ $type == "default" ]]; then
-                part1="$part1/almalinux"
-                stype=""
+
+    for repo_prefix in $repos; 
+    do     
+        for type in $types; 
+        do 
+            if [[ $repo_prefix == *"docker"* &&  $type == "default" ]]; then
+                echo "No place holder for default in user space"
             else
-                part1="$part1/$al_version-$type"
-                stype="$stype$type"
+            if [[ $type == "default" || $type == "minimal" ]]; then
+                pull_docker_official ${1} ${2} ${3} ${4} ${5} 
+            else
+                build_images ${1} ${2} "all" $type ${4} ${5} "rootfs"
             fi
-            part1="$part1:$tag"
-            local tag_suffix="$al_version.$rel_version$stype-$date_suffix"
-            part2="$part2 --amend $repo_prefix/amd64:$tag_suffix"
-            part2="$part2 --amend $repo_prefix/arm64v8:$tag_suffix" 
-            part2="$part2 --amend $repo_prefix/ppc64le:$tag_suffix"
-            if [ "${al_version}" == '9' ]; then
-                part2="$part2 --amend $repo_prefix/s390x:$tag_suffix"
-            fi   
-            # rm returns error when repo/tag not found 
-            # docker manifest rm $part1
-            docker manifest create $part1 $part2
-            docker manifest push $part1
-        done   
-        fi
+            for tag in $tags
+            do
+                local part1="$repo_prefix"
+                local part2=""
+                local stype="-"
+                if [[ $type == "default" ]]; then
+                    part1="$part1/almalinux"
+                    stype=""
+                else
+                    part1="$part1/$al_version-$type"
+                    stype="$stype$type"
+                fi
+                part1="$part1:$tag"
+                local tag_suffix="$al_version.$rel_version$stype-$date_suffix"
+                part2="$part2 --amend $repo_prefix/amd64:$tag_suffix"
+                part2="$part2 --amend $repo_prefix/arm64v8:$tag_suffix" 
+                part2="$part2 --amend $repo_prefix/ppc64le:$tag_suffix"
+                if [ "${al_version}" == '9' ]; then
+                    part2="$part2 --amend $repo_prefix/s390x:$tag_suffix"
+                fi   
+                # rm returns error when repo/tag not found 
+                # docker manifest rm $part1
+                docker manifest create $part1 $part2
+                docker manifest push $part1
+            done   
+            fi
+        done
     done
 }
 
@@ -360,11 +365,17 @@ build_images () {
     local arch_list=$(get_build_arch ${al_version} ${input_arch})
     local type_list=$(get_build_types ${input_type})
 
+    echo "************************************************"
+    echo "*                                              *"
+    echo "*              JOB INPUT VALUES                *"
+    echo "*                                              *"
+    echo "************************************************"
     echo "Input version     : ${al_version}.${rel_version}" 
     echo "Input Arch        : ${input_arch}" 
     echo "Input type        : ${input_type}" 
     echo "Computed arch list: ${arch_list}" 
     echo "Computed type list: ${type_list}" 
+    echo "************************************************"
 
     if [[ -z "$type_list" ]]; then
         echo "Validating input type failed ... ${input_type}" 
@@ -382,10 +393,20 @@ build_images () {
 
     if [[ $status == 'supported' && ! -z "$type_list" ]];  then
     echo "Ready for processing ..."
-        for arch in ${arch_list};
+        for type in ${type_list};
         do
-            for type in ${type_list};
+            echo ""
+            echo "************************************************"
+            echo "  Building container image type: $type          "
+            echo "************************************************"
+            echo ""
+            for arch in ${arch_list};
             do
+                echo ""
+                echo "************************************************"
+                echo "  Building container image type $type, arch $arch          "
+                echo "************************************************"
+                echo ""
                 #build_tag='almalinux/'$arch$repo_sep'8-'$type'-20220608';
                 build_tag=$repo_prefix'/'$(get_registry_arch ${arch})$repo_sep${al_version}.${rel_version}
                 if [ "$type" == "default" ]; then
