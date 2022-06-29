@@ -311,9 +311,9 @@ build_ubi_manifest() {
                 echo "No place holder for default in user space"
             else
             if [[ $type == "default" || $type == "minimal" ]]; then
-                pull_docker_official ${1} ${2} ${3} ${4} ${5} 
+                pull_docker_official "${1}" "${2}" "${3}" "${4}" "${5}" 
             else
-                build_images ${1} ${2} "all" $type ${4} ${5} "rootfs"
+                build_images "${1}" "${2}" "all" "${type}" "${4}" "${5}" "rootfs"
             fi
             for tag in $tags
             do
@@ -337,8 +337,8 @@ build_ubi_manifest() {
                 fi   
                 # rm returns error when repo/tag not found 
                 # docker manifest rm $part1
-                docker manifest create $part1 $part2
-                docker manifest push $part1
+                docker manifest create "$part1" "$part2"
+                docker manifest push "$part1"
             done   
             fi
         done
@@ -428,12 +428,12 @@ build_images () {
                     # build_single_image_using_repos 9 "${1}" minimal "t-minimal-$(get_registry_arch ${1})"
                     echo "build_single_image_using_repos ${al_version} ${arch} $type $build_tag"
                     build_single_image_using_repos ${al_version} ${arch} $type $build_tag
-                    file_prefix='almalinux-'${al_version}'-'$(get_machine_arch ${arch})'-'$type
+                    file_prefix='almalinux-'${al_version}'-docker-'$(get_machine_arch ${arch})'-'$type
                     gen_rootfs $build_tag $file_prefix
                     #docker push $build_tag
                 fi
                 if [[ "$from" == "rootfs" ]]; then
-                    build_single_image_using_rootfs  ${al_version} ${arch} $type $build_tag 
+                    build_single_image_using_rootfs  "${al_version}" "${arch}" "$type" "$build_tag" 
                 fi
             done
         done
