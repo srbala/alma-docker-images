@@ -59,3 +59,14 @@ def test_nginx_package_installed(host):
 def test_nginx_package_installed(host):
     assert host.package("procps-ng").is_installed 
 
+def test_passwd_file(host):
+    passwd = host.file("/etc/passwd")
+    assert passwd.contains("root")
+    assert passwd.user == "root"
+    assert passwd.group == "root"
+    assert passwd.mode == 0o644
+
+def test_passwd_file(host):
+    osr = host.file("/etc/os-release")
+    assert osr.contains("AlmaLinux")
+    assert osr.contains("almalinux.org")

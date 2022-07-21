@@ -13,16 +13,16 @@ if [ $TCNT -ne 1 ]; then
     exit
 fi
 echo "Setting up temp work dir ..."
-mkdir -p wsl-temp && cd wsl-temp
+mkdir -p tar-temp && cd tar-temp
 echo "Saving docker/container image ..."
-docker save $1 -o wsltemp.tar
-TWSL=$(tar -tf wsltemp.tar | grep layer)
-TCNT=$(echo $TWSL | tr ' ' '\n' | grep layer | wc -l | xargs)
+docker save $1 -o tartemp.tar
+TTAR=$(tar -tf tartemp.tar | grep layer)
+TCNT=$(echo $TTAR | tr ' ' '\n' | grep layer | wc -l | xargs)
 echo "Found $TCNT layer(s) in image '$1'."
 if [ $TCNT -eq 1 ]; then
-    echo "Extracting rootfs $TWSL ..."
-    tar -xf wsltemp.tar $TWSL
-    mv $TWSL $TNAME.tar
+    echo "Extracting rootfs $TTAR ..."
+    tar -xf tartemp.tar $TTAR
+    mv $TTAR $TNAME.tar
     echo "Compressing rootfs ..."
     xz $TNAME.tar
     mv $TNAME* ../
@@ -35,5 +35,5 @@ else
     TMSG="Error Exit, task complete."
 fi
 echo "Perform cleanup ..."
-rm -rf wsl-temp
+rm -rf tar-temp
 echo $TMSG
