@@ -1,6 +1,6 @@
 # hadolint ignore=DL3006
-ARG SYSBASE=almalinux/9-micro
-FROM ${SYSBASE} as system-build
+ARG SYS_MICRO
+FROM ${SYS_MICRO}
 
 WORKDIR /code
 

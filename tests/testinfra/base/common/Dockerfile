@@ -1,14 +1,8 @@
-# hadolint ignore=DL3006
-ARG SYSBASE=almalinux/9-base
-FROM ${SYSBASE} as system-build
+ARG SYS_BASE
+FROM ${SYS_BASE} 
 
 RUN mkdir /mnt/sys-root; \
     dnf install \
-#    --nogpgcheck --repoid=AppStream --repoid=BaseOS \
-#    --repofrompath='BaseOS,https://repo.almalinux.org/almalinux/9/BaseOS/$basearch/os/' \
-#    --repofrompath='AppStream,https://repo.almalinux.org/almalinux/9/AppStream/$basearch/os/' \
-#    --installroot /mnt/sys-root \
-#    --releasever 9 \
     --setopt install_weak_deps=false \
     --nodocs -y \
     nginx \
@@ -16,6 +10,7 @@ RUN mkdir /mnt/sys-root; \
     npm \
     podman \
     which \
+    python3 \
     podman-docker; 
 
 WORKDIR /project

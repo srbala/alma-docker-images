@@ -1,4 +1,5 @@
-FROM almalinux/8-init
+ARG SYS_INIT
+FROM ${SYS_INIT} 
 RUN dnf -y install httpd which initscripts; \
     dnf clean all; \
     systemctl enable httpd;

@@ -1,5 +1,6 @@
 import docker
 import pytest
+import os
 
 @pytest.fixture(scope="session")
 def client():
@@ -7,5 +8,5 @@ def client():
 
 @pytest.fixture(scope="session")
 def image(client):
-     img, _ = client.images.build(path='./tests/testinfra/init/httpd')
+     img, _ = client.images.build(path='./tests/testinfra/init/httpd',buildargs={'SYS_INIT': os.environ['SYS_INIT']})
      return img
