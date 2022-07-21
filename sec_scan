@@ -1,0 +1,99 @@
+#!/bin/bash
+# base script
+
+function show_usage() {
+    echo -e 'Security scan utility for almalinux docker/container images\n'
+    echo -e 'Usage: sec_scan img-tag'
+}
+
+function check_command() {
+  f1=$(which "$1")
+  # echo $f1
+  if [ "$f1" == "" ]; then
+    echo "$1 not found in path"
+    exit
+  else
+    echo "Command '$1' found in path"
+  fi
+}
+
+function print_banner() {
+    echo "***************************************************************"
+    echo "* Security scan utility for almalinux docker/container images *"
+    echo "***************************************************************"
+    echo ""
+}
+
+function summary_grype() {
+  file="sec_scan_a2.log"
+  a0=$(cat "$file" | wc -l)
+  if [ a0 > 0 ]; then
+    a1=$(cat "$file" | grep High | wc -l | xargs)
+    a2=$(cat "$file" | grep Medium | wc -l | xargs)
+    a3=$(cat "$file" | grep Low | wc -l | xargs)
+    echo "$a1 High, $a2 Medium and $a3 Low security fixes found using grype search"
+  else
+    echo "No security update found using grype search"
+  fi
+}
+
+function summary_dnf() {
+  file="sec_scan_a1.log"
+  a0=$(cat "$file" | wc -l)
+  if [ a0 > 0 ]; then
+    a1=$(cat "$file" | grep Important | wc -l | xargs)
+    a2=$(cat "$file" | grep Moderate | wc -l | xargs)
+    a3=$(cat "$file" | grep Low | wc -l | xargs)
+    echo "$a1 High, $a2 Medium and $a3 Low security fixes found using dnf search"
+  else
+    echo "No security update found using dnf search"
+  fi
+}
+function sec_scan_dnf() {
+  local -r tag="$1"
+  echo "dnf scanning for $tag"
+  docker run --rm $1 dnf updateinfo list --security | grep LSA | tee sec_scan_a1.log
+  echo "done!"
+  # return summary_dnf "$file"
+}
+
+function sec_scan_grype() {
+  local -r tag="$1"
+  local file="sec_scan_a2.log"
+  echo "grype scanning for $tag"
+  grype $tag --only-fixed | grep -E 'rpm|python' | tee $file
+  echo "done!"
+  # return summary_grype "$file"
+}
+
+if [ -z "$1" ]; then
+  show_usage
+  exit
+fi
+local -r atag="$1"
+
+print_banner
+check_command "docker"
+check_command "grype"
+# check_command "abcx"
+echo "Security scanning for tag $1"
+
+docker pull $1 > /dev/null
+sec_scan_dnf $1
+sec_scan_grype $1
+# TODO: return values env for later use in jenkins
+echo ""
+echo "***************************************************************"
+echo "*     Security scan utility for almalinux - Run Summary       *"
+echo "***************************************************************"
+echo ""
+summary_dnf
+summary_grype
+echo ""
+echo "***************************************************************"
+echo ""
+
+
+
+
+
