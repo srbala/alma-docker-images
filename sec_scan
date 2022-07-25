@@ -25,7 +25,7 @@ function print_banner() {
 }
 
 function summary_grype() {
-  file="sec_scan_a2.log"
+  file="${1}_sec_scan_grype.log"
   a0=$(cat "$file" | wc -l)
   if [ a0 > 0 ]; then
     a1=$(cat "$file" | grep High | wc -l | xargs)
@@ -38,7 +38,7 @@ function summary_grype() {
 }
 
 function summary_dnf() {
-  file="sec_scan_a1.log"
+  file="${1}_sec_scan_docker.log"
   a0=$(cat "$file" | wc -l)
   if [ a0 > 0 ]; then
     a1=$(cat "$file" | grep Important | wc -l | xargs)
@@ -51,15 +51,16 @@ function summary_dnf() {
 }
 function sec_scan_dnf() {
   local -r tag="$1"
+  local -r file="${2}_sec_scan_docker.log"
   echo "dnf scanning for $tag"
-  docker run --rm $1 dnf updateinfo list --security | grep LSA | tee sec_scan_a1.log
+  docker run --rm $1 dnf updateinfo list --security | grep LSA | tee $file
   echo "done!"
   # return summary_dnf "$file"
 }
 
 function sec_scan_grype() {
   local -r tag="$1"
-  local file="sec_scan_a2.log"
+  local file="${2}_sec_scan_grype.log"
   echo "grype scanning for $tag"
   grype $tag --only-fixed | grep -E 'rpm|python' | tee $file
   echo "done!"
@@ -79,16 +80,16 @@ check_command "grype"
 echo "Security scanning for tag $1"
 
 docker pull $1 > /dev/null
-sec_scan_dnf $1
-sec_scan_grype $1
+sec_scan_dnf $1 $2
+sec_scan_grype $1 $2
 # TODO: return values env for later use in jenkins
 echo ""
 echo "***************************************************************"
 echo "*     Security scan utility for almalinux - Run Summary       *"
 echo "***************************************************************"
 echo ""
-summary_dnf
-summary_grype
+summary_dnf $2
+summary_grype $2
 echo ""
 echo "***************************************************************"
 echo ""
