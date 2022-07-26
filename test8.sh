@@ -1,5 +1,5 @@
 #!/bin/sh
-source $PWD/.env_al8_build1
+source $PWD/.env_al8_build
 docker run --rm -t \
   -v $PWD:/code \
   -v /var/run/docker.sock:/var/run/docker.sock:rw \
