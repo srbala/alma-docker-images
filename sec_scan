@@ -62,7 +62,7 @@ function sec_scan_grype() {
   local -r tag="$1"
   local file="${2}_sec_scan_grype.log"
   echo "grype scanning for $tag"
-  grype $tag --only-fixed | grep -E 'rpm|python' | tee $file
+  grype $tag --only-fixed | grep -E 'TYPE|rpm|python' | tee $file
   echo "done!"
   # return summary_grype "$file"
 }
