@@ -1,5 +1,5 @@
 #!/bin/sh
-source $PWD/.env_al8_build
+source $PWD/.env_al9_build
 docker run --rm -t \
   -v $PWD:/code \
   -v /var/run/docker.sock:/var/run/docker.sock:rw \
@@ -8,4 +8,4 @@ docker run --rm -t \
   -e SYS_MICRO=$SYS_MICRO \
   -e SYS_DEFAULT=$SYS_DEFAULT \
   -e SYS_MINIMAL=$SYS_MINIMAL \
-  srbala/testinfra:docker pytest --verbose --junit-xml junit8.xml
+  srbala/testinfra:docker pytest --verbose --junit-xml al9_junit.xml
