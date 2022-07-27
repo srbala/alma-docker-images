@@ -1,5 +1,5 @@
 #!/bin/bash
-# base script
+# AlmaLinux Docker Security Scan Utility
 if [ -z "$1" ]; then
   show_usage
   exit
@@ -138,6 +138,3 @@ sec_scan_grype
 write_sumary  | tee > $summary_file
 cat $summary_file
 exitCheck
-
-
-
