@@ -237,6 +237,7 @@ build_single_image_using_rootfs(){
 gen_rootfs() {
     local -r image="${1}"
     local -r tname="${2}"
+    local rootfs_tmp="rootfs_tmp_${2}"
 
     tcnt=$(docker inspect $image | jq '.[] | .RootFS.Layers | length')
     
@@ -246,12 +247,12 @@ gen_rootfs() {
         exit
     fi
     echo "Setting up temp work dir ..."
-    mkdir -p rootfs-tmp && cd rootfs-tmp
+    mkdir -p $rootfs_tmp && cd $rootfs_tmp
     echo "Saving docker/container image ..."
     docker save $image -o rootfstmp.tar
     trepo=$(tar -tf rootfstmp.tar | grep layer)
     tcnt=$(echo $trepo | tr ' ' '\n' | grep layer | wc -l | xargs)
-    echo "Found $tcnt layer(s) in image '$image'."
+#    echo "Found $tcnt layer(s) in image '$image'."
     if [ $tcnt -eq 1 ]; then
         echo "Extracting rootfs $trepo ..."
         tar -xf rootfstmp.tar $trepo
@@ -260,7 +261,7 @@ gen_rootfs() {
         xz $tname.tar
         mv $tname* ../
         cd ..
-        F1=$(ls | grep $tname)
+        F1=$(ls *.tar* | grep $tname)
         TMSG="Task complete. Output rootfs located at $PWD/$F1"
     else
         echo "Only single layer image is supported at this time. Use '--squash' option to create single layer image."
@@ -268,7 +269,7 @@ gen_rootfs() {
         TMSG="Error Exit, task complete."
     fi
     echo "Perform cleanup ..."
-    rm -rf rootfs-tmp
+    rm -rf $rootfs_tmp
     echo $TMSG
 }
 
