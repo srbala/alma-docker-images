@@ -2,7 +2,7 @@
 # description: Build rootfs from repos based on environment variables
 # license: MIT.
 
-docker run --rm -it ${2} rpm -qa --queryformat '%{name} %{version}-%{release}\n' | sort > rpm_al${1}_new.log
-docker run --rm -it ${3} rpm -qa --queryformat '%{name} %{version}-%{release}\n'| sort > rpm_al${1}_old.log
+docker run --rm ${2} rpm -qa --queryformat '%{name} %{version}-%{release}\n' | sort > rpm_al${1}_new.log
+docker run --rm ${3} rpm -qa --queryformat '%{name} %{version}-%{release}\n'| sort > rpm_al${1}_old.log
 
 /usr/libexec/platform-python gen_change_log.py rpm_al${1}_old.log rpm_al${1}_new.log > changes_al${1}.log
