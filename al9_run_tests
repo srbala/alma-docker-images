@@ -1,5 +1,5 @@
 #!/bin/sh
-source env.al9
+source $PWD/env.al9
 docker run --rm -t \
   -v $PWD:/code \
   -v /var/run/docker.sock:/var/run/docker.sock:rw \
