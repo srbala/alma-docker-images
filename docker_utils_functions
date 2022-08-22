@@ -209,6 +209,7 @@ build_single_image_using_rootfs(){
     local -r arch_platform=$(get_platform_arch "${2}")
     local -r type="${3}"
     local -r tags="${4}"
+    local -r skip="${5}"
     local -r arch_machine=$(get_machine_arch "${2}")
     local tag_list=""
     ## assemble tags one string  to pass
@@ -223,10 +224,12 @@ build_single_image_using_rootfs(){
     docker build "--platform=linux/${arch_platform}" ${tag_list} -f "Dockerfile-${arch_machine}-${type}" .
     
     # Circle thru to publish
-    for tag  in $tags
-    do
-        docker push "${tag}"
-    done
+    if [[ "$skip" == "false" ]]; then
+        for tag  in $tags
+        do
+            docker push "${tag}"
+        done
+    fi
 }
 
 #
@@ -328,7 +331,7 @@ build_ubi_manifest() {
             if [[ $type == "default" || $type == "minimal" ]]; then
                 pull_docker_official "${1}" "${2}" "${3}" "${4}" "${5}" 
             else
-                build_images "${1}" "${2}" "all" "${type}" "${4}" "${5}" "rootfs"
+                build_images "${1}" "${2}" "all" "${type}" "${4}" "${5}" "rootfs" "false"
             fi
             for tag in $tags
             do
@@ -396,6 +399,7 @@ build_images () {
     # tag_date=$(date +%Y%m%d)
     local -r tag_date="${6}"
     local -r from="${7}"
+    local -r skip="${8}"
     local arch_list=$(get_build_arch ${al_version} ${input_arch})
     local type_list=$(get_build_types ${input_type})
 
@@ -469,7 +473,7 @@ build_images () {
                     #docker push $build_tag
                 fi
                 if [[ "$from" == "rootfs" ]]; then
-                    build_single_image_using_rootfs  "${al_version}" "${arch}" "$type" "$tags1" 
+                    build_single_image_using_rootfs  "${al_version}" "${arch}" "$type" "$tags1" "$skip"
                 fi
             done
         done
