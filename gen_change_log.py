@@ -18,7 +18,7 @@ if (res == False):
     print("New file not found")
     sys.exit(2) 
 
-print("Processing diff log, old file: `{}` and new file `{}`".format(args[1], args[2]))
+# print("Processing diff log, old file: `{}` and new file `{}`".format(args[1], args[2]))
 
 with open(args[1]) as file_1, open(args[2]) as file_2:
     differ = Differ()
