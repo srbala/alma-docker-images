@@ -399,7 +399,7 @@ build_images () {
     # tag_date=$(date +%Y%m%d)
     local -r tag_date="${6}"
     local -r from="${7}"
-    local -r skip="${8}"
+    local -r skip="${8:=false}"
     local arch_list=$(get_build_arch ${al_version} ${input_arch})
     local type_list=$(get_build_types ${input_type})
 
