@@ -92,7 +92,7 @@ get_build_arch() {
         all)
             case "${version}" in
                 8)
-                    echo 'x86_64 aarch64 ppc64le';;
+                    echo 'x86_64 aarch64 ppc64le s390x';;
                 9)
                     echo 'x86_64 aarch64 ppc64le s390x';;   
             esac 
@@ -159,7 +159,7 @@ check_build_support_arch() {
     case "${version}" in
         8)
             case "${arch}" in
-                x86_64|aarch64|ppc64le|all)
+                x86_64|aarch64|ppc64le|s390x|all)
                     echo "supported";;     
                 *)
                     echo "Error: unsupported architecture ${arch} for version ${version}" 1>&2
@@ -304,11 +304,11 @@ pull_docker_official() {
     docker pull docker.io/ppc64le/almalinux:$tag1
     docker tag docker.io/ppc64le/almalinux:$tag1 "$repo_prefix/ppc64le:$tag"
     docker push "$repo_prefix/ppc64le:$tag"
-    if [[ $al_version == "9" ]]; then
+#    if [[ $al_version == "9" ]]; then
         docker pull docker.io/s390x/almalinux:$tag1
         docker tag docker.io/s390x/almalinux:$tag1 "$repo_prefix/s390x:$tag"
         docker push "$repo_prefix/s390x:$tag"
-    fi
+#    fi
 
 }
 
@@ -350,9 +350,9 @@ build_ubi_manifest() {
                 part2="${part2} --amend ${repo_prefix}/amd64:${tag_suffix}"
                 part2="${part2} --amend ${repo_prefix}/arm64v8:${tag_suffix}" 
                 part2="${part2} --amend ${repo_prefix}/ppc64le:${tag_suffix}"
-                if [ "${al_version}" == '9' ]; then
+                #if [ "${al_version}" == '9' ]; then
                     part2="${part2} --amend ${repo_prefix}/s390x:${tag_suffix}"
-                fi   
+                #fi   
                 # echo "Part1: ${part1}"
                 # echo "Part2: ${part2}"
                 # rm returns error when repo/tag not found 
@@ -527,7 +527,8 @@ almaLibrary8Tags() {
 		amd64-File: Dockerfile-x86_64-default
 		arm64v8-File: Dockerfile-aarch64-default
 		ppc64le-File: Dockerfile-ppc64le-default
-		Architectures: amd64, arm64v8, ppc64le
+        s390x-File: Dockerfile-s390x-default
+		Architectures: amd64, arm64v8, ppc64le, s390x
 
 		Tags: minimal, 8-minimal, 8.6-minimal, 8.6-minimal-$tagdate
 		GitFetch: refs/heads/$branch
@@ -535,7 +536,8 @@ almaLibrary8Tags() {
 		amd64-File: Dockerfile-x86_64-minimal
 		arm64v8-File: Dockerfile-aarch64-minimal
 		ppc64le-File: Dockerfile-ppc64le-minimal
-		Architectures: amd64, arm64v8, ppc64le
+        s390x-File: Dockerfile-s390x-default
+		Architectures: amd64, arm64v8, ppc64le, s390x
 	EOE
 }
 
