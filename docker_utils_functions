@@ -196,7 +196,7 @@ build_single_image_using_repos(){
     local -r tag="${4}"
     # local -r build_arg="--squash"
     echo "Building for arch: $arch_platform"
-    docker build "--platform=linux/${arch_platform}" -t "${tag}" -f "dockerfiles/al${al_version}/Dockerfile.${type}" .
+    docker build "--platform=linux/${arch_platform}" --build-arg SYSBASE=srbala/bootstrap:8 -t "${tag}" -f "dockerfiles/al${al_version}/Dockerfile.${type}" .
 }
 
 #
