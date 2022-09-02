@@ -296,6 +296,8 @@ pull_docker_official() {
 # pull with full release tag from docker    
     local tag1=$tag
     tag="$tag-$date_suffix"
+    echo "docker pull docker.io/amd64/almalinux:$tag1"
+    echo "docker tag docker.io/amd64/almalinux:$tag1 $repo_prefix/amd64:$tag"
     docker pull docker.io/amd64/almalinux:$tag1
     docker tag docker.io/amd64/almalinux:$tag1 "$repo_prefix/amd64:$tag"
     docker push "$repo_prefix/amd64:$tag"
@@ -317,10 +319,11 @@ pull_docker_official() {
 build_ubi_manifest() {
     local -r al_version="${1}"
     local -r rel_version="${2}"
-    local -r types="${3}"
+    local -r input_type="${3}"
     local -r repos="${4}"
     local -r date_suffix="${5}"
     local -r tags="latest ${1} ${1}.${2} ${1}.${2}-${5}"
+    local types=$(get_build_types ${input_type})
 
     for repo_prefix in $repos; 
     do     
@@ -330,9 +333,9 @@ build_ubi_manifest() {
                 echo "No place holder for default in user space"
             else
             if [[ $type == "default" || $type == "minimal" ]]; then
-                pull_docker_official "${1}" "${2}" "${3}" "${4}" "${5}" 
+                pull_docker_official "${1}" "${2}" "${type}" "${repo_prefix}" "${5}" 
             else
-                build_images "${1}" "${2}" "all" "${type}" "${4}" "${5}" "rootfs" "false"
+                build_images "${1}" "${2}" "all" "${type}" "${repo_prefix}" "${5}" "rootfs" "false"
             fi
             for tag in $tags
             do
