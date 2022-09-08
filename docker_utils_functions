@@ -516,6 +516,15 @@ jsonLastCommit() {
 }
 
 #
+# curl -s https://api.github.com/repos/almalinuxautobot/docker-images/branches | jq '.[] .name' | grep al8 | tr -d '"' | awk -v inp="al8-20220901" ' $1 > inp { printf $1"\n" }'
+#
+getBranchlist() {
+    rel="${1}"
+    prd=$(getLibrarybranch $rel)
+    curl -s https://api.github.com/repos/almalinuxautobot/docker-images/branches | jq '.[] .name' | grep al${rel} | tr -d '"' | awk -v inp="${prd}" ' $1 > inp { printf $1"\n" }'
+    # echo $list
+}
+#
 # Get library file from github.com
 # curl -LO https://raw.githubusercontent.com/docker-library/official-images/master/library/almalinux
 # filter last AL8 and AL9 branch info
@@ -526,10 +535,10 @@ jsonLastCommit() {
 # getLibrarybranch 9
 #
 getLibrarybranch() {
-	local -r version="$1"
-    raw=$(curl -s https://raw.githubusercontent.com/docker-library/official-images/master/library/almalinux)
-	branch=$(echo $raw | cat almalinux | grep GitFetch | sort -ru | awk 'FNR < 3 { print $2 } ' | grep al-$version)
-    echo $branch
+	local -r ver="${1}"
+    url="${2:-https://raw.githubusercontent.com/docker-library/official-images/master/library/almalinux}"
+    ref_branch=$(curl -s $url  | grep GitFetch | sort -ru | awk 'FNR < 3 { print $2 } ' | grep al$1 | sed 's/-s390x//' | sed 's=refs/heads/==g' )
+    echo $ref_branch
 }
 
 # Generate AlmaLinux 8 related tags
