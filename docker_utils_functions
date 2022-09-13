@@ -541,6 +541,10 @@ getLibrarybranch() {
     echo $ref_branch
 }
 
+#
+# page size max is 1
+# curl -s 'https://hub.docker.com/v2/namespaces/almalinux/repositories?&page=1&page_size=50' | jq '.results[] .name'
+#
 # Generate AlmaLinux 8 related tags
 almaLibrary8Tags() {
 	local -r branch="$1"
@@ -636,7 +640,7 @@ function almaEnvBuilder() {
     if  [[ "${run_date}" != "today" ]]; then
         date_suffix="${run_date}"
     fi
-    branch="al-${os}.${rel}-$(date +'%Y%m%d-%H%M%S')"
+    branch="al${os}-$(date +'%Y%m%d-%H%M%S')"
     repo_prefix="docker.io/srbala quay.io/almalinuxautobot"
     repo="quay.io/almalinuxautobot"
     if [ "${run_env}" == "prod" ]; then
