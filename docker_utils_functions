@@ -541,6 +541,13 @@ getLibrarybranch() {
     echo $ref_branch
 }
 
+gitBranchLastCommitHash() {
+	local -r branch="$1"
+	json=$(jsonLastCommit $branch)
+	hash=$(echo $json | jq '.sha' | xargs)
+    echo $hash
+}
+
 #
 # page size max is 1
 # curl -s 'https://hub.docker.com/v2/namespaces/almalinux/repositories?&page=1&page_size=50' | jq '.results[] .name'
@@ -548,7 +555,7 @@ getLibrarybranch() {
 # Generate AlmaLinux 8 related tags
 almaLibrary8Tags() {
 	local -r branch="$1"
-    json=$(jsonLastCommit $branch)
+	json=$(jsonLastCommit $branch)
 	commit=$(echo $json | jq '.sha' | xargs)
 	dt=$(echo $json | jq '.commit.author.date' | xargs)
 	tagdate=$(date -d $dt  +'%Y%m%d')
